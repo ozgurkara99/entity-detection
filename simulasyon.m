@@ -48,10 +48,10 @@ for k=1:size_of_pairs
         output(j,:) = [transpose(out_rx(:,2)) transpose(out_rx(:,3)) 1 coord_eve]; %north, south, probability, coordinates of eve
     end
     if k == 1 
-        writematrix(output,"output.csv");
+        dlmwrite('output.csv', output);
     else
         dlmwrite('output.csv', output, '-append');
     end
 end
-%writematrix(output,"output.csv");
+
 
