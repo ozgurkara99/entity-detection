@@ -1,6 +1,6 @@
 function [output] = downsample(input, time, sampled_length, interval_length)
-%DOWNSAMPLE Summary of this function goes here
-%   Detailed explanation goes here
+
+%the function for downsampling the data with given length
 
 rate = sampled_length / interval_length;
 for_north = linspace(2,4*rate-2,rate);
