@@ -42,6 +42,8 @@ Tensorboard logs will be uploaded soon
 ## Results 
 Predictions on test set and the results
 ![Predictions on test set and the results](https://github.com/ozgurkara99/entity-detection/blob/master/Results.png)
+Learning curve:
+![Predictions on test set and the results](https://github.com/ozgurkara99/entity-detection/blob/master/model-loss-epoch.png)
 
 ## For More Information
 [Machine Learning-Based Silent Entity Localization Using Molecular Diffusion](https://ieeexplore.ieee.org/document/8964317)
