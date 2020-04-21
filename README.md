@@ -40,6 +40,7 @@ There are 2 loss functions defined: binary cross entropy and custom mean squared
 Tensorboard logs will be uploaded soon
 
 ## Results 
+Predictions on test set and the results
 ![Predictions on test set and the results](https://github.com/ozgurkara99/entity-detection/blob/master/Results.png)
 
 ## For More Information
