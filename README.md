@@ -29,7 +29,8 @@ increment = 0.25
 ## Details of Artificial Neural Network Model:
 Batch size: 1024  
 Epoch Num: 500  
-Mean of l2norm prob: 0.72  
+Mean of l2norm prob: 0.66
+Median of l2norm prob: 0.2
 %10 percent of the dataset is used as test set  
 %9 percent of the dataset is used as validation set  
 
