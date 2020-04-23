@@ -30,9 +30,8 @@ increment = 0.25
 Batch size: 1024  
 Epoch Num: 500  
 Mean of l2norm prob: 0.66
-Median of l2norm prob: 0.2
-%10 percent of the dataset is used as test set  
-%9 percent of the dataset is used as validation set  
+%3 percent of the dataset is used as test set  
+%9 of the dataset is used as validation set  
 
 The network has 1000 input and has 6 hidden layers each have 512 neurons. L2 regularization is used for overcoming the overfitting. Learning rate is chosen to decrease to half of it's initial value (0.001) hyperbolically after 500 epoch. Elu activation function is used for neurons in hidden layers. There are 2 outputs: the coordinates and probability. "Coordinates" output has no activation function since it tries to solve a regression problem, however "probability" output has a sigmoid activation function to predict the probability. 
 
