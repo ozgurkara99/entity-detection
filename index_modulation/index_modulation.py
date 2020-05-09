@@ -1,15 +1,15 @@
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt 
 
 PI = np.pi
 # util functions 
 def parametrize(t0, t1, p):
-    par = np.transpose(np.array(t0)) + np.transpose(np.array(t1) - np.array(t0)) * p
+    par = np.transpose(t0) + np.transpose(t1 - t0) * p
     return par
 
 def euclidian_dist(arr1, arr2):
-    arr1 = np.array(arr1)
-    arr2 = np.array(arr2)
+    #arr1 = np.array(arr1)
+    #arr2 = np.array(arr2)
     return np.sqrt(abs(np.sum(((arr1 - arr2) ** 2), axis=-1)))
 
 def cart_to_spherical(x, y, z):
@@ -33,7 +33,7 @@ def delete_duplicated(pos, pos2):
     return differ
 
 class Simulation():
-    def __init__(self, num_of_tx=8, num_of_rx=1, r_rx=5, r_tx=0.2, D=79.4,step=0.001, time=0.75, d_yz=10, d_x=10, center_of_rx = [0,0,0], mol_number=10000):
+    def __init__(self, num_of_tx=8, num_of_rx=1, r_rx=5, r_tx=0.2, D=79.4,step=0.001, time=0.75, d_yz=10, d_x=10, center_of_rx = np.array([0,0,0]), mol_number=10000):
         print("Simulation is starting...")
         self.num_of_tx = num_of_tx
         self.num_of_rx = num_of_rx
@@ -45,7 +45,7 @@ class Simulation():
         self.d_yz = d_yz
         self.d_x = d_x
         self.center_of_rx = center_of_rx
-        self.center_of_UCA = [center_of_rx[0] + d_x + r_rx +  r_tx, center_of_rx[1], center_of_rx[2]]
+        self.center_of_UCA = np.array([center_of_rx[0] + d_x + r_rx +  r_tx, center_of_rx[1], center_of_rx[2]])
         self.sigma = np.sqrt(2 * D * step)
         self.mol_number = mol_number
         self.mu = 0
@@ -55,51 +55,48 @@ class Simulation():
         self.output = []
         for i in range(int(self.time / self.step)):
             delta = self.sigma * np.random.randn(self.mol_number, pos.shape[1]) + self.mu
-            #2 conditions: 1- when it hits transmitter, it will be reflected. 
-            #2- when it hits receiver, azimuth and elevation data will be exported
+            self.plot_3d_scatter(pos)
             pos2 = pos + delta
-            print("step1: " + str(i))
             rx_indices = self.detect_indices(pos2, self.r_rx, self.center_of_rx)
             if(len(rx_indices) != 0):    
                 coords = []
                 for h in rx_indices:  
                     coord = self.find_nearest_coord(pos[h], pos2[h], self.center_of_rx, self.r_rx) 
                     coords.append(coord)
-                print("step2: " + str(i))
                 coords = np.array(coords)
                 self.azimuth_data, self.elevation_data = self.find_azimuth_elevation(coords)
-                pos2[rx_indices,0] = 10000 
+                pos2[rx_indices,0] = -60
                 self.output.append([self.azimuth_data, self.elevation_data])
             tx_block_indices = np.where(pos2[:,0] >= (self.center_of_UCA[0] + self.r_tx))[0]
             pos2[tx_block_indices] = mirror_point_over_plane(1, 0, 0, -1 * (self.center_of_UCA[0] + self.r_tx), pos2[tx_block_indices,0], pos2[tx_block_indices,1], pos2[tx_block_indices,2])
-            print("step3: " + str(i))
+
             for each_tx in range(self.num_of_tx):
                 center_of_tx = self.tx_positions()[each_tx]
-                tx_indices_1 = self.detect_indices(pos, self.r_tx, center_of_tx)
-                tx_indices_2 = self.detect_indices(pos2, self.r_tx, center_of_tx)
+                tx_indices_1 = self.detect_indices(pos[np.where(pos[:,0] >= self.d_x)], self.r_tx, center_of_tx)
+                tx_indices_2 = self.detect_indices(pos2[np.where(pos[:,0] >= self.d_x)], self.r_tx, center_of_tx)
                 tx_indices = delete_duplicated(tx_indices_1, tx_indices_2)
-                print("step4: " + str(i))
                 if(len(tx_indices)!=0):
                     for h in tx_indices:
-                        pos2[h] = self.tx_reflection(pos[h], pos2[h], center_of_tx)            
+                        pos2[h] = self.tx_reflection(pos[h], pos2[h], center_of_tx)   
+
             pos = pos2
-            print("step: " + str(i))
         return self.output
+    
     def detect_indices(self, pos, radius, coord):
         distance = euclidian_dist(pos, coord)
         indices = np.where(distance<=radius)[0]
         return indices
     
     def find_azimuth_elevation(self, coords):
-        coords = np.array(coords)
+        
         azimuth, elevation = cart_to_spherical(coords[:,0] - self.center_of_rx[0], coords[:,1] - self.center_of_rx[1], coords[:,2] - self.center_of_rx[2])
         return azimuth, elevation
 
     def find_nearest_coord(self, t0, t1, center_of_sphere, r):
-        h = np.array([parametrize(t0,t1,x) for x in np.arange(0,1,0.005)])
+        h = np.array([parametrize(t0,t1,x) for x in np.arange(0,1,0.01)])
         a = np.full((h.shape[0], h.shape[1]), center_of_sphere)
         x = euclidian_dist(a,h)
-        return np.array([h[np.argmin(abs(abs(x) - r)),0], h[np.argmin(abs(abs(x) - r)),1], h[np.argmin(abs(abs(x) - r)),2]])
+        return [h[np.argmin(abs(abs(x) - r)),0], h[np.argmin(abs(abs(x) - r)),1], h[np.argmin(abs(abs(x) - r)),2]]
     
     def tx_positions(self):
         d = np.arange(0,1,1/(self.num_of_tx))
@@ -116,11 +113,36 @@ class Simulation():
         c = coords[2] - center_of_tx[2]
         d = -1 * (a * coords[0] + b * coords[1] + c * coords[2])
         reflected = mirror_point_over_plane(a, b, c, d, t1[0], t1[1], t1[2])
-        return np.array(reflected)
+        return reflected
         
+    def plot_3d_scatter(self, pos):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(pos[:,0], pos[:,1], pos[:,2], c='r', marker='o')
+        for i in range(self.num_of_tx):
+            center_of_tx = self.tx_positions()[i]
+            ax.scatter(center_of_tx[0], center_of_tx[1], center_of_tx[2], c='g', marker='o')
+        u = np.linspace(0, 2 * np.pi, 100)
+        v = np.linspace(0, np.pi, 100)
 
+        x = self.r_rx * np.outer(np.cos(u), np.sin(v))
+        y = self.r_rx * np.outer(np.sin(u), np.sin(v))
+        z = self.r_rx * np.outer(np.ones(np.size(u)), np.cos(v))
+        ax.plot_surface(x, y, z, rstride=10, cstride=10, color='b')
+        ax.set_xlabel('X Label')
+        ax.set_ylabel('Y Label')
+        ax.set_zlabel('Z Label')
+        plt.show()
+        plt.close()
+        
+    
 m = Simulation()
+import time
+start = time.time()
 output = m.start_simulation()
+print("total time = " + str(time.time() - start))
+
+
 """
 coords = m.find_nearest_coord([0,7,0] , [0,3,0], m.center_of_rx, m.r_rx)
 az, el = m.find_azimuth_elevation(coords)
