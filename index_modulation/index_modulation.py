@@ -81,13 +81,6 @@ class Simulation():
             pos = pos2
         return self.output
     
-    def f(self,x):
-        return (self.t0[0] + (self.t1[0] - self.t0[0]) * x)**2 + (self.t0[1] + (self.t1[1] - self.t0[1]) * x)**2 + (self.t0[2] + (self.t1[2] - self.t0[2]) * x)**2 - (self.r)**2
-
-    def solve(self):
-        t = fsolve(self.f, 0)
-        return [self.t0[0] + (self.t1[0] - self.t0[0]) * t, self.t0[1] + (self.t1[1] - self.t0[1]) * t, self.t0[2] + (self.t1[2] - self.t0[2]) * t]
-
     def detect_indices(self, pos, radius, coord):
         distance = euclidian_dist(pos, coord)
         indices = np.where(distance<=radius)[0]
