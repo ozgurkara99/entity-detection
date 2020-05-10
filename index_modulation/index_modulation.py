@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt 
+from scipy.optimize import fsolve
 
 PI = np.pi
 # util functions 
@@ -60,12 +61,11 @@ class Simulation():
             rx_indices = self.detect_indices(pos2, self.r_rx, self.center_of_rx)
             if(len(rx_indices) != 0):    
                 coords = []
-                for h in rx_indices:  
-                    coord = self.find_nearest_coord(pos[h], pos2[h], self.center_of_rx, self.r_rx) 
-                    coords.append(coord)
+                for h in rx_indices:
+                    coords.append(self.find(pos[h], pos2[h], self.center_of_rx, self.r_rx))
                 coords = np.array(coords)
                 self.azimuth_data, self.elevation_data = self.find_azimuth_elevation(coords)
-                pos2[rx_indices,0] = -60
+                pos2[rx_indices,0] = -1000
                 self.output.append([self.azimuth_data, self.elevation_data])
             tx_block_indices = np.where(pos2[:,0] >= (self.center_of_UCA[0] + self.r_tx))[0]
             pos2[tx_block_indices] = mirror_point_over_plane(1, 0, 0, -1 * (self.center_of_UCA[0] + self.r_tx), pos2[tx_block_indices,0], pos2[tx_block_indices,1], pos2[tx_block_indices,2])
@@ -82,16 +82,52 @@ class Simulation():
             pos = pos2
         return self.output
     
+    def f(self,x):
+        return (self.t0[0] + (self.t1[0] - self.t0[0]) * x)**2 + (self.t0[1] + (self.t1[1] - self.t0[1]) * x)**2 + (self.t0[2] + (self.t1[2] - self.t0[2]) * x)**2 - (self.r)**2
+
+    def solve(self):
+        t = fsolve(self.f, 0)
+        return [self.t0[0] + (self.t1[0] - self.t0[0]) * t, self.t0[1] + (self.t1[1] - self.t0[1]) * t, self.t0[2] + (self.t1[2] - self.t0[2]) * t]
+
     def detect_indices(self, pos, radius, coord):
         distance = euclidian_dist(pos, coord)
         indices = np.where(distance<=radius)[0]
         return indices
     
     def find_azimuth_elevation(self, coords):
-        
         azimuth, elevation = cart_to_spherical(coords[:,0] - self.center_of_rx[0], coords[:,1] - self.center_of_rx[1], coords[:,2] - self.center_of_rx[2])
         return azimuth, elevation
 
+    def find_nearest_coord_newton(self, t0, t1, center_of_sphere,  r, x0 = 1, epsilon=0.00001,max_iter=100): 
+        coefs = np.zeros((4))
+        t0 = t0 - center_of_sphere
+        t1 = t1 - center_of_sphere
+        coefs[0] = t0[0] ** 2 + t0[1] ** 2 + t0[2] ** 2
+        coefs[1] = 2 * (t0[0] * (t1[0] - t0[0]) + t0[1] * (t1[2] - t0[1]) + t0[2] * (t1[2] - t0[2]))
+        coefs[2] = (t1[0] - t0[0]) ** 2 + (t1[1] - t0[1]) ** 2 + (t1[2] - t0[2]) ** 2 
+        coefs[3] = r**2
+        f = lambda x: (coefs[0]) + (coefs[1] * x) + (coefs[2] * x**2) - coefs[3]
+        Df = lambda x: coefs[1] + 2 * x * coefs[2]
+        xn = x0
+        for n in range(0,max_iter):
+            fxn = f(xn)
+            if abs(fxn) < epsilon:
+                #print('Found solution after',n,'iterations.')
+                return center_of_sphere + np.transpose(np.array([t0[0] + (t1[0] - t0[0]) * xn, t0[1] + (t1[1] - t0[1]) * xn , t0[2] + (t1[2] - t0[2]) * xn]))
+            Dfxn = Df(xn)
+            if Dfxn == 0:
+                #print('Zero derivative. No solution found.')
+                return -1
+            xn = xn - fxn/Dfxn
+        return -1
+
+    def find(self,t0, t1, center_of_sphere, r):
+        a = self.find_nearest_coord_newton(t0, t1, center_of_sphere,  r)
+        if(type(a)==int):
+            return self.find_nearest_coord(t0, t1, center_of_sphere, r)
+        else:
+            return self.find_nearest_coord_newton(t0, t1, center_of_sphere, r)
+        
     def find_nearest_coord(self, t0, t1, center_of_sphere, r):
         h = np.array([parametrize(t0,t1,x) for x in np.arange(0,1,0.01)])
         a = np.full((h.shape[0], h.shape[1]), center_of_sphere)
@@ -107,7 +143,7 @@ class Simulation():
         return np.stack((x,y,z), axis=-1)
     
     def tx_reflection(self, t0, t1, center_of_tx):
-        coords = self.find_nearest_coord(t0,t1,center_of_tx, self.r_tx )
+        coords = self.find(t0,t1,center_of_tx, self.r_tx )
         a = coords[0] - center_of_tx[0]
         b = coords[1] - center_of_tx[1]
         c = coords[2] - center_of_tx[2]
@@ -144,10 +180,11 @@ print("total time = " + str(time.time() - start))
 
 
 """
-coords = m.find_nearest_coord([0,7,0] , [0,3,0], m.center_of_rx, m.r_rx)
-az, el = m.find_azimuth_elevation(coords)
+coords = m.find_nearest_coord(np.array([0,7,0]) , np.array([0,3,0]), m.center_of_rx, m.r_rx)
+
+az, el = m.find_azimuth_elevation(np.array([coords]))
 pos_tx = m.tx_positions()
-reflected, coord = m.tx_reflection([0,6,7] , [0,0,1], [0,0,0])
+reflected, coord = m.tx_reflection(np.array([0,6,7]) , np.array([0,0,1]), np.array([0,0,0]))
 
 
 plt.gcf().gca().add_artist(plt.Circle((0, 0), m.r_tx, color='r', fill=False))
