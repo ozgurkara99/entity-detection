@@ -1,10 +1,3 @@
-# Bogazici NRG, Index Modulation Project
-## Images From Simulation
-![1](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/sim.png)
-![2](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/sim2.png)
-![3](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/sim3.png)
-![4](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/sim4.png)
-
 # Bogazici NRG, Silent Entity Detection Project
 ## Installation
 Localization of a silent entity in 2-D given scenario
