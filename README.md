@@ -1,9 +1,9 @@
 # Bogazici NRG, Index Modulation Project
 ## Images From Simulation
-![1](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/sim.png)
-![2](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/sim2.png)
-![3](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/sim3.png)
-![4](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/sim4.png)
+![1](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/images/sim.png)
+![2](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/images/sim2.png)
+![3](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/images/sim3.png)
+![4](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/images/sim4.png)
 
 # Bogazici NRG, Silent Entity Detection Project
 ## Installation
