@@ -3,24 +3,90 @@ import matplotlib.pyplot as plt
 import time
 
 PI = np.pi
-# util functions 
 
 def parametrize(t0, t1, p):
+    
+    """Create a new point on a line segment that is created by given t0 and t1 parameters with 
+    increment p
+
+    Parameters
+    ----------
+    t0 : array
+        first point [x,y,z]
+    t1 : array
+        second point [x,y,z]
+    p : float
+        increment number
+    Returns
+    -------
+    array
+        new point on this line segment (x,y,z)
+    """
+    
     par = np.transpose(t0) + np.transpose(t1 - t0) * p
     return par
 
 def euclidian_dist(arr1, arr2):
-    #arr1 = np.array(arr1)
-    #arr2 = np.array(arr2)
+    
+    """Find the euclidian distance between 2 points
+
+    Parameters
+    ----------
+    arr1 : array
+        first point [x,y,z]
+    arr2 : array
+        second point [x,y,z]
+    Returns
+    -------
+    float
+        the euclidian distance between points
+    """
+    
     return np.sqrt(abs(np.sum(((arr1 - arr2) ** 2), axis=-1)))
 
 def cart_to_spherical(x, y, z):
+    
+    """Convert the given cartesian coordinate system to spherical coordinate system
+    ex: (0,0,1) -> elevation is 0
+    ex: (1,0,0) -> azimuth is 0
+
+    Parameters
+    ----------
+    x : float
+        x coordinate of point
+    y : float
+        y coordinate of point
+    z : float
+        z coordinate of point
+    Returns
+    -------
+    az : float
+        azimuth value
+    el : float
+        elevation value
+    """
+    
     hxy = np.hypot(x, y)
-    el = np.arctan2(hxy, z) #(0,0,1) has 0 elevation
+    el = np.arctan2(hxy, z) 
     az = np.arctan2(y, x)
     return az, el
 
 def mirror_point_over_plane(a, b, c, d, x1, y1, z1):  
+    
+    """Mirror given point (x1,y1,z1) over given plane equation ax + by + cz + d = 0
+
+    Parameters
+    ----------
+    a, b, c, d : float
+        plane equation coefficients
+    x1, y1, z1 : float
+        the point coordinates that will be mirrored
+    Returns
+    -------
+    array
+        the coordinates of reflected point [x,y,z]
+    """    
+
     k =(-a * x1 - b * y1 - c * z1 - d)/float((a * a + b * b + c * c)) 
     x2 = a * k + x1 
     y2 = b * k + y1 
@@ -31,6 +97,21 @@ def mirror_point_over_plane(a, b, c, d, x1, y1, z1):
     return np.stack((x3,y3,z3), axis=-1)
 
 def delete_duplicated(pos, pos2):
+    
+    """Find the set difference of pos2 from pos
+
+    Parameters
+    ----------
+    pos : array
+        first array
+    pos2 : array
+        second array
+    Returns
+    -------
+    array
+        the values of pos2/pos
+    """       
+    
     differ = np.array(list(set(pos2).difference(set(pos))))
     return differ
 
@@ -97,6 +178,18 @@ class Simulation():
         self.mu = 0
     
     def start_simulation(self):
+        
+        """Starts the simulation, molecules are reflected over transmitter sphere and transmitter
+        block and it returns the molecules' coordinates that hits the receiver
+        
+        Returns
+        -------
+        output : array
+            the list of spherical coordinates of each point
+        output_coordinates : array
+            the list of cartesian coordinates of each point
+        """         
+        
         print("Simulation is starting...")
         pos = np.full((self.mol_number,self.tx_positions()[0].shape[0]), self.tx_positions()[0])
         self.output = []
@@ -105,7 +198,11 @@ class Simulation():
             delta = self.sigma * np.random.randn(self.mol_number, pos.shape[1]) + self.mu
             #self.plot_3d_scatter(pos)
             pos2 = pos + delta
-                        
+            
+            tx_block_indices = np.where(pos2[:,0] >= (self.center_of_UCA[0] + self.r_tx))[0]
+            pos2[tx_block_indices] = mirror_point_over_plane(1, 0, 0, -1 * (self.center_of_UCA[0] + self.r_tx), pos2[tx_block_indices,0], pos2[tx_block_indices,1], pos2[tx_block_indices,2])
+
+                       
             for each_tx in range(self.num_of_tx):
                 center_of_tx = self.tx_positions()[each_tx]
                 tx_indices_1 = self.detect_indices(pos, self.r_tx, center_of_tx)
@@ -114,7 +211,7 @@ class Simulation():
                 if(len(tx_indices)!=0):
                     for h in tx_indices:
                         pos2[h] = self.tx_reflection(pos[h], pos2[h], center_of_tx, self.r_tx)   
-        
+            
             rx_indices = self.detect_indices(pos2, self.r_rx, self.center_of_rx)
             if(len(rx_indices) != 0):    
                 coords = []
@@ -125,22 +222,73 @@ class Simulation():
                 pos2[rx_indices,0] = -1000
                 self.output_coordinates.append(coords)
                 self.output.append([self.azimuth_data, self.elevation_data])
-            tx_block_indices = np.where(pos2[:,0] >= (self.center_of_UCA[0] + self.r_tx))[0]
-            pos2[tx_block_indices] = mirror_point_over_plane(1, 0, 0, -1 * (self.center_of_UCA[0] + self.r_tx), pos2[tx_block_indices,0], pos2[tx_block_indices,1], pos2[tx_block_indices,2])
+           
 
             pos = pos2
         return self.output, self.output_coordinates
     
     def detect_indices(self, pos, radius, coord):
+        
+        """Detect the indices of values in pos which are inside of the sphere that is defined
+        by given radius and center.
+
+        Parameters
+        ----------
+        pos : array
+            the position matrix of molecules
+        radius : float
+            the radius of sphere
+        coord : array
+            the center point of sphere [x,y,z]
+        Returns
+        -------
+        array
+            the indices of the "pos" array that are detected inside the sphere
+        """     
+        
         distance = euclidian_dist(pos, coord)
         indices = np.where(distance<=radius)[0]
         return indices
     
     def find_azimuth_elevation(self, coords):
+        
+        """Find the azimuth and elevation values of "coords" array with 
+        respect to self.center_of_rx 
+
+        Parameters
+        ----------
+        coords : array
+            the coordinates array of molecules that will be converted to spherical coordinates
+        Returns
+        -------
+        azimuth : float
+            the azimuth value
+        elevation : float
+            the elevation value
+        """    
+
         azimuth, elevation = cart_to_spherical(coords[:,0] - self.center_of_rx[0], coords[:,1] - self.center_of_rx[1], coords[:,2] - self.center_of_rx[2])
         return azimuth, elevation
 
     def find_with_quadratic(self,t0, t1, center_of_sphere, r):
+        
+        """Find the intersection point of the line segment that is crossing through 
+        t0 and t1, and the sphere which is defined by center_of_sphere and r (radius) value
+
+        Parameters
+        ----------
+        t0, t1 : array
+            the points through which the line segment is crossing 
+        center_of_sphere : array
+            the center point of sphere [x,y,z]
+        r : float
+            the radius value of array
+        Returns
+        -------
+        array
+            the point of intersection [x,y,z]
+        """            
+        
         t0 = t0 - center_of_sphere
         t1 = t1 - center_of_sphere
         coefs = np.zeros((4))
@@ -149,10 +297,6 @@ class Simulation():
         coefs[1] = 2 * (t0[0] * (t1[0] - t0[0]) + t0[1] * (t1[1] - t0[1]) + t0[2] * (t1[2] - t0[2]))
         coefs[2] = (t1[0] - t0[0]) ** 2 + (t1[1] - t0[1]) ** 2 + (t1[2] - t0[2]) ** 2 
         coefs[3] = r**2
-        """
-        if(coefs[1]**2 - 4 * coefs[2] * (coefs[0] - coefs[3]) < 0):
-            return t1
-        """
         xn = (-1*coefs[1] + np.sqrt(coefs[1]**2 - 4 * coefs[2] * (coefs[0] - coefs[3]))) / (2*coefs[2])
         xn2 = (-1*coefs[1] - np.sqrt(coefs[1]**2 - 4 * coefs[2] * (coefs[0] - coefs[3]))) / (2*coefs[2])
         root1 = center_of_sphere + np.transpose(np.array([t0[0] + (t1[0] - t0[0]) * xn, t0[1] + (t1[1] - t0[1]) * xn , t0[2] + (t1[2] - t0[2]) * xn]))
@@ -163,6 +307,16 @@ class Simulation():
             return root1
         
     def tx_positions(self):
+        
+        """Create the transmitter's coordinates in a circular region and distributed 
+        uniformly in angle depending on the self.num_of_tx
+
+        Returns
+        -------
+        array
+            the coordinates of created transmitters
+        """          
+        
         d = np.arange(0,1,1/(self.num_of_tx))
         theta = d * 2 * PI
         y = self.center_of_UCA[1] + 4 * np.cos(theta)
@@ -171,6 +325,24 @@ class Simulation():
         return np.stack((x,y,z), axis=-1)
     
     def tx_reflection(self, t0, t1, center_of_tx, r):
+        
+        """Find the reflection point of the line segment which is crossing through t0 and t1 and 
+        intersects with the sphere that is defined by parameters. Then returns this 
+        reflected point
+        Parameters
+        ----------
+        t0, t1 : array
+            the points through which the line segment is crossing 
+        center_of_tx : array
+            the center point of sphere [x,y,z]
+        r : float
+            the radius value of array
+        Returns
+        -------
+        array
+            the coordinates of reflected point [x,y,z]
+        """          
+        
         coords = self.find_with_quadratic(t0, t1, center_of_tx, r)
         #ax + by + cz + d = 0
         a = coords[0] - center_of_tx[0]
@@ -182,6 +354,16 @@ class Simulation():
         return reflected
         
     def plot_3d_scatter(self, pos):
+        
+        """3D visualization of simulation. Plotting the molecules, receiver sphere and
+        transmitters.
+
+        Parameters
+        ----------
+        pos : array
+            the position matrix of molecules
+        """          
+        
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.scatter(pos[:,0], pos[:,1], pos[:,2], c='r', marker='o')
