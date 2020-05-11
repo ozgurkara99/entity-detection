@@ -80,7 +80,7 @@ class Simulation():
     plot_3d_scatter(pos)
         it plots the molecules and receiver
     """
-    def __init__(self, num_of_tx=8, num_of_rx=1, r_rx=5, r_tx=1, D=79.4,step=0.0001, time=0.75, d_yz=10, d_x=10, center_of_rx = np.array([0,0,0]), mol_number=100):
+    def __init__(self, num_of_tx=8, num_of_rx=1, r_rx=5, r_tx=0.5, D=79.4,step=0.0001, time=0.75, d_yz=10, d_x=10, center_of_rx = np.array([0,0,0]), mol_number=10000):
         self.num_of_tx = num_of_tx
         self.num_of_rx = num_of_rx
         self.r_rx = r_rx
@@ -105,6 +105,16 @@ class Simulation():
             delta = self.sigma * np.random.randn(self.mol_number, pos.shape[1]) + self.mu
             #self.plot_3d_scatter(pos)
             pos2 = pos + delta
+                        
+            for each_tx in range(self.num_of_tx):
+                center_of_tx = self.tx_positions()[each_tx]
+                tx_indices_1 = self.detect_indices(pos, self.r_tx, center_of_tx)
+                tx_indices_2 = self.detect_indices(pos2, self.r_tx, center_of_tx)
+                tx_indices = delete_duplicated(tx_indices_1, tx_indices_2)
+                if(len(tx_indices)!=0):
+                    for h in tx_indices:
+                        pos2[h] = self.tx_reflection(pos[h], pos2[h], center_of_tx, self.r_tx)   
+        
             rx_indices = self.detect_indices(pos2, self.r_rx, self.center_of_rx)
             if(len(rx_indices) != 0):    
                 coords = []
@@ -117,15 +127,7 @@ class Simulation():
                 self.output.append([self.azimuth_data, self.elevation_data])
             tx_block_indices = np.where(pos2[:,0] >= (self.center_of_UCA[0] + self.r_tx))[0]
             pos2[tx_block_indices] = mirror_point_over_plane(1, 0, 0, -1 * (self.center_of_UCA[0] + self.r_tx), pos2[tx_block_indices,0], pos2[tx_block_indices,1], pos2[tx_block_indices,2])
-            
-            for each_tx in range(self.num_of_tx):
-                center_of_tx = self.tx_positions()[each_tx]
-                tx_indices_1 = self.detect_indices(pos[np.where(pos[:,0] >= self.d_x)], self.r_tx, center_of_tx)
-                tx_indices_2 = self.detect_indices(pos2[np.where(pos[:,0] >= self.d_x)], self.r_tx, center_of_tx)
-                tx_indices = delete_duplicated(tx_indices_1, tx_indices_2)
-                if(len(tx_indices)!=0):
-                    for h in tx_indices:
-                        pos2[h] = self.tx_reflection(pos[h], pos2[h], center_of_tx, self.r_tx)   
+
             pos = pos2
         return self.output, self.output_coordinates
     
@@ -142,10 +144,15 @@ class Simulation():
         t0 = t0 - center_of_sphere
         t1 = t1 - center_of_sphere
         coefs = np.zeros((4))
-        coefs[0] = t0[0] ** 2 + t0[1] ** 2 + t0[2] ** 2
+        # f = lambda x: (coefs[0]) + (coefs[1] * x) + (coefs[2] * x**2) - coefs[3]
+        coefs[0] = t0[0] ** 2 + t0[1] ** 2 + t0[2] ** 2 
         coefs[1] = 2 * (t0[0] * (t1[0] - t0[0]) + t0[1] * (t1[1] - t0[1]) + t0[2] * (t1[2] - t0[2]))
         coefs[2] = (t1[0] - t0[0]) ** 2 + (t1[1] - t0[1]) ** 2 + (t1[2] - t0[2]) ** 2 
         coefs[3] = r**2
+        """
+        if(coefs[1]**2 - 4 * coefs[2] * (coefs[0] - coefs[3]) < 0):
+            return t1
+        """
         xn = (-1*coefs[1] + np.sqrt(coefs[1]**2 - 4 * coefs[2] * (coefs[0] - coefs[3]))) / (2*coefs[2])
         xn2 = (-1*coefs[1] - np.sqrt(coefs[1]**2 - 4 * coefs[2] * (coefs[0] - coefs[3]))) / (2*coefs[2])
         root1 = center_of_sphere + np.transpose(np.array([t0[0] + (t1[0] - t0[0]) * xn, t0[1] + (t1[1] - t0[1]) * xn , t0[2] + (t1[2] - t0[2]) * xn]))
@@ -201,3 +208,6 @@ m = Simulation()
 start = time.time()
 output, output_coordinates = m.start_simulation()
 print("total time = " + str(time.time() - start))
+summ  = 0
+for i in output_coordinates:
+    summ = summ + i.shape[0]
