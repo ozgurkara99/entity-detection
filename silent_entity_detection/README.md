@@ -41,7 +41,7 @@ Tensorboard logs will be uploaded soon
 
 ## Results 
 Predictions on test set and the results
-![Predictions on test set and the results](https://github.com/ozgurkara99/entity-detection/tree/master/silent_entity_detection/images)
+![Predictions on test set and the results](https://github.com/ozgurkara99/entity-detection/blob/master/silent_entity_detection/images/Results.png)
 Learning curve:
 will be updated
 
