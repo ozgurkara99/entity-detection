@@ -1,4 +1,22 @@
 # Bogazici NRG, Index Modulation Project
+## Simulation Parameters
+num_of_tx=8;
+num_of_rx=1;
+r_rx=5;
+r_tx=0.5;
+D=79.4;
+step=0.0001;
+time=0.75;
+d_yz=10;
+d_x=10;
+center_of_rx = [0 0 0];
+mol_number=100000;
+center_of_UCA = [center_of_rx(1) + d_x + r_rx +  r_tx, center_of_rx(2), center_of_rx(3)];
+mu = 0;
+sigma = sqrt(2 * D * step);
+txpos = tx_positions(center_of_UCA, num_of_tx);
+n_train = 150;
+
 ## Images From Simulation
 ![1](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/images/sim.png)
 ![2](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/images/sim2.png)
