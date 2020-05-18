@@ -210,8 +210,8 @@ class Simulation():
         
         d = np.arange(0,1,1/(self.num_of_tx))
         theta = d * 2 * PI
-        y = self.center_of_UCA[1] + 4 * np.cos(theta)
-        z = self.center_of_UCA[2] + 4 * np.sin(theta)
+        y = self.center_of_UCA[1] + (self.d_yz + self.r_tx) * np.cos(theta)
+        z = self.center_of_UCA[2] + (self.d_yz + self.r_tx) * np.sin(theta)
         x = np.full((d.shape[0]), self.center_of_UCA[0])
         return np.stack((x,y,z), axis=-1)
     
