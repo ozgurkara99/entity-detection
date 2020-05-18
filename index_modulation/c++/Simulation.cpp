@@ -276,11 +276,11 @@ bool Simulation::is_inside(std::vector<double> pos, double r, std::vector<double
 	double dist = helper_func::euclidian_dist(pos, center);
 	if(dist <= r)
 	{
-		return True;
+		return true;
 	}
 	else
 	{
-		return False;
+		return false;
 	}
 }
 
