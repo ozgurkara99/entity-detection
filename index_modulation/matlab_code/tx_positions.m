@@ -9,7 +9,7 @@ function [arr] = tx_positions(center_of_UCA,num_of_tx, d_yz, r_tx)
         the coordinates of created transmitters
 %}          
 
-    d = transpose(linspace(0,1,(num_of_tx)));
+    d = transpose(linspace(0,1-(1/num_of_tx),(num_of_tx)));
     theta = d * 2 * pi;
     y = center_of_UCA(2) + (d_yz + r_tx) * cos(theta);
     z = center_of_UCA(3) + (d_yz + r_tx) * sin(theta);
