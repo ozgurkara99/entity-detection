@@ -12,7 +12,7 @@ mol_number=100000;
 center_of_UCA = [center_of_rx(1) + d_x + r_rx +  r_tx, center_of_rx(2), center_of_rx(3)];
 mu = 0;
 sigma = sqrt(2 * D * step);
-txpos = tx_positions(center_of_UCA, num_of_tx, d_yz, r_tx);
+txpos = tx_positions(center_of_UCA,num_of_tx, d_yz, r_tx);
 n_train = 150;
 fprintf("Simulation is starting...")
 

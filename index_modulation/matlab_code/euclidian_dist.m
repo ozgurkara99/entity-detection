@@ -14,6 +14,7 @@ function [dist] = euclidian_dist(arr1,arr2)
         the euclidian distance between points
     
 %}    
+%dist = DNorm2(arr1-arr2,2);
 dist = sqrt(sum((arr1 - arr2).^2 , 2));
 
 end
