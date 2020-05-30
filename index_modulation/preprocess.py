@@ -2,7 +2,9 @@ import numpy as np
 import csv
 import math
 PI = math.pi
-
+time = 0.75
+downsample = 0.01
+size = time / downsample
 filepath = 'data\\output.csv'
 
 """
@@ -29,21 +31,21 @@ def read_data(filepath):
                 tri.append(np.array(temp,dtype=float))
                 temp = []
             i=i+1
-            if(i==10):
+            if(i==31):
                 break
     return tri
 
 
 tri = read_data(filepath)
 
-output = np.zeros((len(tri),17,750))
-output[:,16,:] = np.linspace(0,0.749,750)
+output = np.zeros((len(tri),az_pair * el_pair + 1,int(size)))
+output[:,az_pair * el_pair,:] = np.linspace(0,time - downsample,int(size))
 
 az_list, el_list = az_el_pair(az_pair, el_pair)
 for inn,lis in enumerate(tri):
-    for time in range(750):    
-        az = lis[0,np.where(((time * 0.001) <= lis[2,:]) & (lis[2,:]< (time +1)* 0.001))]
-        el = lis[1,np.where(((time * 0.001) <= lis[2,:]) & (lis[2,:]< (time +1)* 0.001))]
+    for time in range(int(size)):    
+        az = lis[0,np.where(((time * downsample) <= lis[2,:]) & (lis[2,:]< (time +1)* downsample))]
+        el = lis[1,np.where(((time * downsample) <= lis[2,:]) & (lis[2,:]< (time +1)* downsample))]
         for i in range(az.shape[1]):
             for j in range(az_pair):
                 for k in range(el_pair):
