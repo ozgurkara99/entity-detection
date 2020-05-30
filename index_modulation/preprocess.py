@@ -31,7 +31,7 @@ def read_data(filepath):
                 tri.append(np.array(temp,dtype=float))
                 temp = []
             i=i+1
-            if(i==601):
+            if(i==-1): #3n + 1 for result
                 break
     return tri
 
