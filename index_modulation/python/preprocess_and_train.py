@@ -1,11 +1,17 @@
 import numpy as np
 import csv
 import math
+from sklearn.model_selection import train_test_split
+from keras.utils import to_categorical
+from matplotlib import pyplot as plt
+from keras.models import Sequential
+from keras.layers import Dense, Conv2D, Flatten
 
 PI = math.pi
 time = 0.75
-downsample = 0.001
+downsample = 0.01
 az_pair, el_pair = 4, 4
+test_size = 0.7
 filepath = 'data\\output.csv'
 size = time / downsample
 
@@ -54,42 +60,52 @@ def preprocess(az_pair, el_pair, size, time, downsample, filepath):
                             classes[inn,0] = lis[0,-1] 
     return classes, output
 
+def train(data, classes, test_size):
+    X_train, X_test, y_train, y_test = train_test_split(data, classes, test_size=test_size)
+    y_train = to_categorical(y_train)[:,1:]
+    y_test = to_categorical(y_test)[:,1:]
+    
+    model = Sequential()
+    model.add(Conv2D(128, kernel_size=2, activation="relu", input_shape=(X_train.shape[1],X_train.shape[2],1)))
+    model.add(Conv2D(128, kernel_size=2, activation="relu",))
+    model.add(Flatten())
+    model.add(Dense(8, activation="softmax"))
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10)
+    return history, model
+
+def plot_learning_curve(history):
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'val', 'train_acc', 'val_acc'], loc='upper left')
+    plt.show()    
+
+def test(flpath, model):
+    classes, output = preprocess(az_pair, el_pair, size, time, downsample, filepath = flpath)
+    data = output[:,:az_pair * el_pair,:] 
+    data = data.reshape(data.shape[0],data.shape[1],data.shape[2],1)
+    return model.predict(data[:,:,:,:])
+
+
+
 classes, output = preprocess(az_pair, el_pair, size, time, downsample, filepath)
 data = output[:,:az_pair * el_pair,:] 
-                   
+data = data.reshape(data.shape[0],data.shape[1],data.shape[2],1)
+history, model = train(data,classes, test_size)
+plot_learning_curve(history)
+
+
+model.save('cnn_model.h5')
+y_sonuc = model.predict(data[:,:,:,:])
+
+
+
+test_prediction = test('data\\output2.csv', model)
+
 
     
-from sklearn.model_selection import train_test_split
-from keras.utils import to_categorical
-from matplotlib import pyplot as plt
-data = data.reshape(data.shape[0],data.shape[1],data.shape[2],1)
-X_train, X_test, y_train, y_test = train_test_split(data, classes, test_size=0.8)
-y_train = to_categorical(y_train)[:,1:]
-y_test = to_categorical(y_test)[:,1:]
-
-from keras.models import Sequential
-from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D
-#create model
-model = Sequential()
-#add model layers
-model.add(Conv2D(18, kernel_size=2, activation="relu", input_shape=(int(az_pair * el_pair),int(time/downsample),1)))
-model.add(Conv2D(18, kernel_size=2, activation="relu",))
-model.add(Flatten())
-model.add(Dense(8, activation="softmax"))
-
-#compile model using accuracy to measure model performance
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=20)
-plt.plot(history.history['loss'])
-plt.plot(history.history['val_loss'])
-plt.plot(history.history['accuracy'])
-plt.plot(history.history['val_accuracy'])
-plt.title('model loss')
-plt.ylabel('loss')
-plt.xlabel('epoch')
-plt.legend(['train', 'val', 'train_acc', 'val_acc'], loc='upper left')
-plt.show()
-
-
-y_sonuc = model.predict(data[1:160,:,:,:])
