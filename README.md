@@ -1,22 +1,36 @@
 # Bogazici NRG, Index Modulation Project
-## Simulation Parameters
-num_of_tx=8  
-num_of_rx=1  
-r_rx=5  
-r_tx=0.5  
-D=79.4  
-step=0.0001  
-time=0.75  
-d_yz=10  
-d_x=10  
-center_of_rx = [0 0 0]  
-mol_number=100000  
-center_of_UCA = [center_of_rx(1) + d_x + r_rx +  r_tx, center_of_rx(2), center_of_rx(3)]  
-mu = 0  
-sigma = sqrt(2 * D * step)  
-txpos = tx_positions(center_of_UCA, num_of_tx) 
-n_train = 150  
+## Installation
+Machine Learning based decoding input (symbol) in Multiple Input Single Output scenario.
 
+There is one simulation code written in MATLAB and program for machine learning training and testing.
+Simulation will output a csv file that has (number of training x 3) rows. For one simulation, it outputs the time series of the azimuth and elevation values of molecules that are absorbed by Rx sphere.  
+
+You should run preprocess_and_train.py file in the directory that contains data/output.csv . This file converts the simulation output to multivariate time series, then train it with CNN model to classify which Tx sent the information.
+
+## Details of Preprocessing
+
+## Details of Deep Learning Based Model
+
+
+## Simulation Parameters
+Number of Tx spheres = 8 (distributed equally on the circle that has center (center_of_UCA) and radius = d_yz +  r_tx)  
+Number of Rx spheres = 1  
+Radius of Rx = 5  
+Radius of Tx = 0.5  
+Diffusion Coefficient = 79.4  
+Timestep = 0.0001  
+Total Time = 0.75  
+d_yz = Distance between center of UCA and the closest point of Tx sphere = 10  
+dx = Distance between center of UCA and the closest point of Rx sphere = 10  
+Center of Rx = [0 0 0]  
+Molecule Number = 100000  
+Center of UCA = [center_of_rx(1) + d_x + r_rx +  r_tx, center_of_rx(2), center_of_rx(3)]  
+Mu = 0  
+Sigma = sqrt(2 * D * step)  
+Number of Simulation = 150  
+Tx sphere's emit molecules and also they can reflect molecules.   
+Rx sphere absorb molecules.  
+This simulation outputs the azimuth and elevation values of molecules that are absorbed by Rx sphere.  
 ## Images From Simulation
 ![1](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/images/sim.png)
 ![2](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/images/sim2.png)
