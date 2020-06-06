@@ -8,6 +8,7 @@ Simulation will output a csv file that has (number of training x 3) rows. For on
 You should run preprocess_and_train.py file in the directory that contains data/output.csv . This file converts the simulation output to multivariate time series, then train it with CNN model to classify which Tx sent the information.
 
 ## Details of Preprocessing
+For one simulation, we have 2 time series: Azimuth value of absorbed molecule/time, elevation value of absorbed molecule/time. The program first slice the sphere into (azimuth_slice x elevation_slice) segment. Then for each region, it creates new time series.  
 
 ## Details of Deep Learning Based Model
 
