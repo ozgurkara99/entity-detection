@@ -8,10 +8,11 @@ Simulation will output a csv file that has (number of training x 3) rows. For on
 You should run preprocess_and_train.py file in the directory that contains data/output.csv . This file converts the simulation output to multivariate time series, then train it with CNN model to classify which Tx sent the information.
 
 ## Details of Preprocessing
-For one simulation, we have 2 time series: Azimuth value of absorbed molecule/time, elevation value of absorbed molecule/time. The program first slice the sphere into (azimuth_slice x elevation_slice) segment. Then for each region, it creates new time series.  
+For one simulation, we have 2 time series: Azimuth value of absorbed molecule/time, elevation value of absorbed molecule/time. The program first slice the sphere into (azimuth_slice x elevation_slice) segment. Then for each region, it creates new time series. 
+In the preprocessing, the timeseries also downsampled to 0.0001 -> 0.01.
 
 ## Details of Deep Learning Based Model
-
+Data splitted to training, validation and test set. (0.4, 0.3, 0.3) Then model has 2 Convolutional layer (kernel size is 2x2 and activation function is relu) and one dense layer which has activation function as softmax (because it is classification, we need to find the probabilites). (after convolution layers, data will be flattened). Because it is a multiclass classification problem using multivariate time series, "categorical crossentropy" loss function is used. "Accuracy" metric is used for evaluation. 5 epoch is selected and it is sufficient for accuracy = 1 classification.  
 
 ## Simulation Parameters
 Number of Tx spheres = 8 (distributed equally on the circle that has center (center_of_UCA) and radius = d_yz +  r_tx)  
