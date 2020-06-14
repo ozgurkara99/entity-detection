@@ -41,8 +41,8 @@ In the preprocessing, the timeseries also downsampled to 0.0001 -> 0.01.
 Data splitted to training, validation and test set. (0.4, 0.3, 0.3) Then model has 2 Convolutional layer (kernel size is 2x2 and activation function is relu) and one dense layer which has activation function as softmax (because it is classification, we need to find the probabilites). (after convolution layers, data will be flattened). Because it is a multiclass classification problem using multivariate time series, "categorical crossentropy" loss function is used. "Accuracy" metric is used for evaluation. 5 epoch is selected and it is sufficient for accuracy = 1 classification.  
 
 ## Results
-Learning curve is shown below.
 ![Learning Curve](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/images/Learning%20Curve.png)
+
 # Bogazici NRG, Silent Entity Detection Project
 ## Installation
 Localization of a silent entity in 2-D given scenario
