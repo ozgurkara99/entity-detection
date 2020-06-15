@@ -4,7 +4,7 @@ r_rx=5;
 r_tx=0.5;
 D=79.4;
 step=0.0001;
-time=0.75;
+time=1;
 d_yz=10;
 d_x=10;
 center_of_rx = [0 0 0];
@@ -13,7 +13,7 @@ center_of_UCA = [center_of_rx(1) + d_x + r_rx +  r_tx, center_of_rx(2), center_o
 mu = 0;
 sigma = sqrt(2 * D * step);
 txpos = tx_positions(center_of_UCA,num_of_tx, d_yz, r_tx);
-n_train = 150;
+n_train = 125;
 fprintf("Simulation is starting...")
 
 
