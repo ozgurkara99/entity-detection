@@ -42,6 +42,7 @@ Data splitted to training, validation and test set. (0.4, 0.3, 0.3) Then model h
 
 ## Results
 ![Learning Curve](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/images/Learning%20Curve.png)
+![Model Accuracy](https://github.com/ozgurkara99/entity-detection/blob/master/index_modulation/images/Model%20Accuracy.png)
 
 # Bogazici NRG, Silent Entity Detection Project
 ## Installation
