@@ -6,15 +6,16 @@ from keras.utils import to_categorical
 from matplotlib import pyplot as plt
 from keras.models import Sequential
 from keras.layers import Dense, Conv2D, Flatten
+from tensorflow import keras
 
 PI = math.pi
 time = 0.75
 downsample = 0.01
 az_pair, el_pair = 4, 4
-test_size = 0.7
+test_size = 0.2
 filepath = 'data\\output.csv'
 size = time / downsample
-
+mol_num = 100000
 """
 1 -> theta yani azimuth
 2 -> phi yani elevation
@@ -41,6 +42,7 @@ def read_data(filepath):
                 break
     return tri
 
+
 def preprocess(az_pair, el_pair, size, time, downsample, filepath):
     tri = read_data(filepath)
     output = np.zeros((len(tri),az_pair * el_pair + 1,int(size)))
@@ -65,47 +67,64 @@ def train(data, classes, test_size):
     y_train = to_categorical(y_train)[:,1:]
     y_test = to_categorical(y_test)[:,1:]
     
+    opt = keras.optimizers.Adam(learning_rate=0.0001)
     model = Sequential()
-    model.add(Conv2D(128, kernel_size=2, activation="relu", input_shape=(X_train.shape[1],X_train.shape[2],1)))
-    model.add(Conv2D(128, kernel_size=2, activation="relu",))
+    model.add(Conv2D(32, kernel_size=2, activation="relu", input_shape=(X_train.shape[1],X_train.shape[2],1)))
+    model.add(Conv2D(32, kernel_size=2, activation="relu",))
     model.add(Flatten())
     model.add(Dense(8, activation="softmax"))
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10)
+    model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+    history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=700)
     return history, model
 
 def plot_learning_curve(history):
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
-    plt.plot(history.history['accuracy'])
-    plt.plot(history.history['val_accuracy'])
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
-    plt.legend(['train', 'val', 'train_acc', 'val_acc'], loc='upper left')
+    plt.legend(['train_loss', 'val_loss'], loc='upper right')
     plt.show()    
-
-def test(flpath, model):
+    
+def plot_accuracy(history):
+    plt.figure(2)
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])    
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend([ 'train_acc', 'val_acc'], loc='upper right')
+    plt.show()
+    
+def test(flpath, model, mol_number):
     classes, output = preprocess(az_pair, el_pair, size, time, downsample, filepath = flpath)
     data = output[:,:az_pair * el_pair,:] 
+    data = data / mol_number
     data = data.reshape(data.shape[0],data.shape[1],data.shape[2],1)
-    return model.predict(data[:,:,:,:])
+    result = model.predict(data[:,:,:,:])
+    return classes, ((result.argmax(axis=1)) + 1).reshape((result.shape[0],1))
 
 
+def symbol(y_pred, y_real):
+    length = y_pred.shape[0]
+    true_num = np.count_nonzero(y_pred == y_real)
+    return 1 - true_num / length
 
 classes, output = preprocess(az_pair, el_pair, size, time, downsample, filepath)
 data = output[:,:az_pair * el_pair,:] 
+data = data / mol_num
 data = data.reshape(data.shape[0],data.shape[1],data.shape[2],1)
 history, model = train(data,classes, test_size)
 plot_learning_curve(history)
+plot_accuracy(history)
 
 
-model.save('cnn_model.h5')
+model.save('cnn_model_normalized.h5')
 y_sonuc = model.predict(data[:,:,:,:])
 
 
 
-test_prediction = test('data\\output2.csv', model)
-
+test_class, test_prediction = test('data\\output5.csv', model, 5000)
+print(symbol(test_prediction, test_class))
 
     
