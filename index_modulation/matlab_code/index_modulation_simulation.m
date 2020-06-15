@@ -59,8 +59,8 @@ for j=1:num_of_tx
                 [azimuth_data, elevation_data] = find_azimuth_elevation(coords, center_of_rx);
                 pos2(rx_indices,1) = -1000;
                 output_coordinates = [output_coordinates;coords];
-                time = ones(size(azimuth_data,1), size(azimuth_data,2)) .* (i*step);
-                output = [output; [azimuth_data, elevation_data,time]];
+                timex = ones(size(azimuth_data,1), size(azimuth_data,2)) .* (i*step);
+                output = [output; [azimuth_data, elevation_data,timex]];
             end
             pos = pos2;
         end
