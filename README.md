@@ -14,7 +14,7 @@ Radius of Rx = 5
 Radius of Tx = 0.5  
 Diffusion Coefficient = 79.4  
 Timestep = 0.0001  
-Total Time = 0.75  
+Total Time = 1  
 d_yz = Distance between center of UCA and the closest point of Tx sphere = 10  
 dx = Distance between center of UCA and the closest point of Rx sphere = 10  
 Center of Rx = [0 0 0]  
