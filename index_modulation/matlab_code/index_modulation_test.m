@@ -13,14 +13,14 @@ center_of_UCA = [center_of_rx(1) + d_x + r_rx +  r_tx, center_of_rx(2), center_o
 mu = 0;
 sigma = sqrt(2 * D * step);
 txpos = tx_positions(center_of_UCA,num_of_tx, d_yz, r_tx);
-n_train = 250;
+n_train = 1250;
 fprintf("Simulation is starting...\n")
 
 
 output = [];
 output_coordinates = [];
 flag = 1;
-for mol_number=5030:20:10010
+for mol_number = 3700:20:4000
     filename = "output_" + string(mol_number) + ".csv";
     for j=1:num_of_tx
         for x = 1:n_train
