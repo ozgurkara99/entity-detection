@@ -7,12 +7,14 @@ from matplotlib import pyplot as plt
 from keras.models import Sequential
 from keras.layers import Dense, Conv2D, Flatten
 from tensorflow import keras
+from os import listdir
+from os.path import isfile, join
 
 PI = math.pi
-time = 0.75
+time = 1
 downsample = 0.01
 az_pair, el_pair = 4, 4
-test_size = 0.2
+test_size = 0.4
 filepath = 'data\\output.csv'
 size = time / downsample
 mol_num = 100000
@@ -74,7 +76,7 @@ def train(data, classes, test_size):
     model.add(Flatten())
     model.add(Dense(8, activation="softmax"))
     model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
-    history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=700)
+    history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=800)
     return history, model
 
 def plot_learning_curve(history):
@@ -110,6 +112,39 @@ def symbol(y_pred, y_real):
     true_num = np.count_nonzero(y_pred == y_real)
     return 1 - true_num / length
 
+def between(value, a, b):
+    pos_a = value.find(a)
+    if pos_a == -1: 
+        return ""
+    pos_b = value.rfind(b)
+    if pos_b == -1: 
+        return ""
+    adjusted_pos_a = pos_a + len(a)
+    if adjusted_pos_a >= pos_b: 
+        return ""
+    return value[adjusted_pos_a:pos_b]
+
+def find_mol_rate(filepath, model):
+    onlyfiles = [f for f in listdir(filepath) if isfile(join(filepath, f))]
+    symbol_rate = np.zeros((2,len(onlyfiles)))
+    for i,file in enumerate(onlyfiles):
+        test_mol_num = int(between(file,"_","."))
+        symbol_rate[1,i] = test_mol_num
+        test_class, test_prediction = test(filepath + file, model, test_mol_num)
+        symbol_rate[0,i] = symbol(test_prediction, test_class)
+        print(str(symbol_rate[0,i]) + " " + str(i+1) + "/" + str(len(onlyfiles)) + " " + str(test_mol_num))
+    return symbol_rate
+        
+def plot_error(data, logarithmic=True):
+    plt.title("error - molecule number")
+    if(logarithmic):    
+        plt.semilogy(data[1,:], data[0,:])
+    else:
+        plt.scatter(data[1,:],data[0,:])
+    plt.xlabel("molecule number")
+    plt.ylabel("error")
+
+"""    for training
 classes, output = preprocess(az_pair, el_pair, size, time, downsample, filepath)
 data = output[:,:az_pair * el_pair,:] 
 data = data / mol_num
@@ -121,10 +156,13 @@ plot_accuracy(history)
 
 model.save('cnn_model_normalized.h5')
 y_sonuc = model.predict(data[:,:,:,:])
+"""
 
-
-
-test_class, test_prediction = test('data\\output5.csv', model, 5000)
+model = keras.models.load_model('cnn_model_normalized.h5')
+symbol2 = find_mol_rate("data\\n_train 200, step 0.001\\", model)
+symbol3 = find_mol_rate("data\\temp9\\", model)
+symbol2 = np.concatenate((symbol2, symbol3), axis=1)
+test_mol_number = 3380
+test_class, test_prediction = test("data\\temp9\\output_" + str(test_mol_number) + ".csv", model, test_mol_number)
 print(symbol(test_prediction, test_class))
-
-    
+plot_error(symbol2)
