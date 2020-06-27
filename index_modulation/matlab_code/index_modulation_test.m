@@ -20,7 +20,7 @@ fprintf("Simulation is starting...\n")
 output = [];
 output_coordinates = [];
 flag = 1;
-for mol_number = 3700:20:4000
+for mol_number = 4540:20:4800
     filename = "output_" + string(mol_number) + ".csv";
     for j=1:num_of_tx
         for x = 1:n_train
