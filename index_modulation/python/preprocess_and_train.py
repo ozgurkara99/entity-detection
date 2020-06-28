@@ -15,7 +15,7 @@ time = 1
 downsample = 0.01
 az_pair, el_pair = 4, 4
 test_size = 0.4
-filepath = 'data\\output.csv'
+filepath = 'data\\output_training.csv'
 size = time / downsample
 mol_num = 100000
 """
@@ -159,10 +159,12 @@ y_sonuc = model.predict(data[:,:,:,:])
 """
 
 model = keras.models.load_model('cnn_model_normalized.h5')
-symbol2 = find_mol_rate("data\\n_train 200, step 0.001\\", model)
-symbol3 = find_mol_rate("data\\temp9\\", model)
+symbol2 = find_mol_rate("data\\data 0.001\\", model)
+"""
+symbol3 = find_mol_rate("data\\temp10\\", model)
 symbol2 = np.concatenate((symbol2, symbol3), axis=1)
 test_mol_number = 3380
 test_class, test_prediction = test("data\\temp9\\output_" + str(test_mol_number) + ".csv", model, test_mol_number)
 print(symbol(test_prediction, test_class))
+"""
 plot_error(symbol2)
