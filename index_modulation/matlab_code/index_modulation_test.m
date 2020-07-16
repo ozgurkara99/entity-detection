@@ -8,7 +8,6 @@ time=1;
 d_yz=10;
 d_x=10;
 center_of_rx = [0 0 0];
-mol_numb = 1010:20:1810;
 center_of_UCA = [center_of_rx(1) + d_x + r_rx +  r_tx, center_of_rx(2), center_of_rx(3)];
 mu = 0;
 sigma = sqrt(2 * D * step);
@@ -16,11 +15,19 @@ txpos = tx_positions(center_of_UCA,num_of_tx, d_yz, r_tx);
 n_train = 1250;
 fprintf("Simulation is starting...\n")
 
+tri = zeros(8,8,n_train);
+
+aran = [1,2,3,4,5,6,7,8];
 
 output = [];
 output_coordinates = [];
 flag = 1;
-for mol_number = 4540:20:4800
+mols = 2000:50:3000;
+error_rate = zeros(size(mols,1), 2);
+moll = 0;
+myarr = transpose(aran) * ones(1,n_train);
+for mol_number=mols
+    moll = moll + 1;
     filename = "output_" + string(mol_number) + ".csv";
     for j=1:num_of_tx
         for x = 1:n_train
@@ -59,6 +66,26 @@ for mol_number = 4540:20:4800
                         coords = [coords ; find_with_quadratic(pos(y,:), pos2(y,:), center_of_rx, r_rx)];
                     end
                     [azimuth_data, elevation_data] = find_azimuth_elevation(coords, center_of_rx);
+                    for az_i = 1:size(azimuth_data,1)
+                        aci = atan2(coords(az_i,2), coords(az_i,3));
+                        if(aci < pi/8 && aci >= -pi/8)
+                            tri(j,3,x) = tri(j,3,x) + 1;
+                        elseif (aci >= pi/8 && aci < 3*pi/8)
+                            tri(j,2,x) = tri(j,2,x) + 1;
+                        elseif (aci >= 3*pi/8 && aci < 5*pi/8)
+                            tri(j,1,x) = tri(j,1,x) + 1;
+                        elseif (aci >= 5*pi/8 && aci < 7*pi/8)
+                            tri(j,8,x) = tri(j,8,x) + 1;
+                        elseif (aci >= 7*pi/8 && aci <= pi) || ( aci < -7*pi/8)
+                            tri(j,7,x) = tri(j,7,x) + 1;
+                        elseif (aci >= -7*pi/8 && aci < -5*pi/8)
+                            tri(j,6,x) = tri(j,6,x) + 1;  
+                        elseif (aci >= -5*pi/8 && aci < -3*pi/8)
+                            tri(j,5,x) = tri(j,5,x) + 1;
+                        elseif (aci >= -3*pi/8 && aci < -pi/8)
+                            tri(j,4,x) = tri(j,4,x) + 1;                                                                    
+                        end
+                    end
                     pos2(rx_indices,1) = -1000;
                     output_coordinates = [output_coordinates;coords];
                     timex = ones(size(azimuth_data,1), size(azimuth_data,2)) .* (i*step);
@@ -70,13 +97,16 @@ for mol_number = 4540:20:4800
             wrt = [wrt [j;j;j]];
             output = [];
             output_coordinates = [];
-            if flag == 1 
-                dlmwrite(filename, wrt); %create the csv file and write to it
-                flag=2;
-            else
-                dlmwrite(filename, wrt, '-append'); %append to the created csv file
-            end
 
         end
     end
+    [M,I]=max(tri,[],1);
+    xy = reshape(I,[size(I,2), size(I,3)]);
+    error = sum(xy == myarr, 'all');
+    error = (n_train * num_of_tx) - error;
+    error_rate(moll,1) = mol_number;
+    error_rate(moll,2) = error/(8*n_train);
+    tri = zeros(8,8,n_train);
 end
+dlmwrite('error_rate.txt',error_rate)
+
