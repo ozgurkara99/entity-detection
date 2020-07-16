@@ -22,7 +22,7 @@ aran = [1,2,3,4,5,6,7,8];
 output = [];
 output_coordinates = [];
 flag = 1;
-mols = 2000:50:3000;
+mols = 2025:50:3000;
 error_rate = zeros(size(mols,1), 2);
 moll = 0;
 myarr = transpose(aran) * ones(1,n_train);
@@ -107,6 +107,9 @@ for mol_number=mols
     error_rate(moll,1) = mol_number;
     error_rate(moll,2) = error/(8*n_train);
     tri = zeros(8,8,n_train);
+    if(moll == 1)
+        dlmwrite('error_rate.txt',error_rate);
+    else
+        dlmwrite('error_rate.txt',error_rate, '-append');
+    end
 end
-dlmwrite('error_rate.txt',error_rate)
-
