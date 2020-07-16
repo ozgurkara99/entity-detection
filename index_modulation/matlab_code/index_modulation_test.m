@@ -110,6 +110,6 @@ for mol_number=mols
     if(moll == 1)
         dlmwrite('error_rate.txt',error_rate);
     else
-        dlmwrite('error_rate.txt',error_rate, '-append');
+        dlmwrite('error_rate.txt',error_rate(moll,:), '-append');
     end
 end
