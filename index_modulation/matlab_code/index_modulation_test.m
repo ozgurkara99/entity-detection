@@ -12,7 +12,7 @@ center_of_UCA = [center_of_rx(1) + d_x + r_rx +  r_tx, center_of_rx(2), center_o
 mu = 0;
 sigma = sqrt(2 * D * step);
 txpos = tx_positions(center_of_UCA,num_of_tx, d_yz, r_tx);
-n_train = 1250;
+n_train = 125;
 fprintf("Simulation is starting...\n")
 
 tri = zeros(8,8,n_train);
@@ -97,6 +97,12 @@ for mol_number=mols
             wrt = [wrt [j;j;j]];
             output = [];
             output_coordinates = [];
+            if flag == 1 
+                dlmwrite(filename, wrt); %create the csv file and write to it
+                flag=2;
+            else
+                dlmwrite(filename, wrt, '-append'); %append to the created csv file
+            end
 
         end
     end
@@ -108,8 +114,10 @@ for mol_number=mols
     error_rate(moll,2) = error/(8*n_train);
     tri = zeros(8,8,n_train);
     if(moll == 1)
-        dlmwrite('error_rate.txt',error_rate);
+        dlmwrite('error_rate2.txt',error_rate);
     else
-        dlmwrite('error_rate.txt',error_rate(moll,:), '-append');
+        dlmwrite('error_rate2.txt',error_rate(moll,:), '-append');
     end
 end
+
+
