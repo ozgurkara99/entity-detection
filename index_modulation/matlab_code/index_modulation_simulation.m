@@ -13,16 +13,16 @@ center_of_UCA = [center_of_rx(1) + d_x + r_rx +  r_tx, center_of_rx(2), center_o
 mu = 0;
 sigma = sqrt(2 * D * step);
 txpos = tx_positions(center_of_UCA,num_of_tx, d_yz, r_tx);
-n_train = 150;
+n_train = 1250;
 fprintf("Simulation is starting...\n")
 
 
 output = [];
 output_coordinates = [];
 flag = 1;
-for mol_number = 100000
-    filename = "output_" + string(mol_number) + "843.csv";
-    for j=[8 4 3]
+for mol_number = 1000:500:3500
+    filename = "output_" + string(mol_number);
+    for j=1:num_of_tx
         for x = 1:n_train
             pos = repmat(txpos(j,:),mol_number,1);
             for i = 1: (time / step)
