@@ -3,7 +3,7 @@ num_of_rx=1;
 r_rx=5;
 r_tx=0.5;
 D=79.4;
-step=0.0001;
+step=0.001;
 time=5;
 d_yz=10;
 d_x=10;
@@ -13,14 +13,14 @@ center_of_UCA = [center_of_rx(1) + d_x + r_rx +  r_tx, center_of_rx(2), center_o
 mu = 0;
 sigma = sqrt(2 * D * step);
 txpos = tx_positions(center_of_UCA,num_of_tx, d_yz, r_tx);
-n_train = 1250;
+n_train = 250;
 fprintf("Simulation is starting...\n")
 
 
 output = [];
 output_coordinates = [];
 flag = 1;
-for mol_number = 1000:500:3500
+for mol_number = 750:500:3250
     filename = "output_" + string(mol_number);
     for j=1:num_of_tx
         for x = 1:n_train
